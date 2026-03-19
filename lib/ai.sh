@@ -19,16 +19,19 @@ MODEL="HuggingFaceH4/zephyr-7b-beta"
 echo "[AI] Sending test request to HuggingFace Router..."
 echo
 
+TMPFILE="$PREFIX/tmp/ai_output.json"
+
 curl -v \
     -X POST \
     -H "Authorization: Bearer $HF_TOKEN" \
     -H "Content-Type: application/json" \
     -d '{"inputs": "Say hello from Termux-Doctor."}' \
     https://router.huggingface.co/$MODEL \
-    -o /tmp/ai_output.json
+    -o "$TMPFILE"
 
 echo
 echo "[AI] Raw Response:"
-cat /tmp/ai_output.json 2>/dev/null || echo "[AI] No output file was created."
+cat "$TMPFILE" 2>/dev/null || echo "[AI] No output file was created."
 echo
+
 
