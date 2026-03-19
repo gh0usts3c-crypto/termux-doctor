@@ -15,7 +15,9 @@ if [ -z "$HF_TOKEN" ]; then
     exit 1
 fi
 
-MODEL="mistralai/Mistral-7B-Instruct-v0.2"
+MODEL="HuggingFaceH4/zephyr-7b-beta"
+
+
 
 echo "[AI] Sending test request to HuggingFace..."
 
