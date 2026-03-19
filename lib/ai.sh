@@ -24,7 +24,9 @@ RESPONSE=$(curl -s \
     -H "Authorization: Bearer $HF_TOKEN" \
     -H "Content-Type: application/json" \
     -d '{"inputs": "Say hello from Termux-Doctor."}' \
-    https://api-inference.huggingface.co/models/$MODEL)
+    https://router.huggingface.co/$MODEL)
+
+
 
 echo
 echo "[AI] Response:"
