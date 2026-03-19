@@ -19,15 +19,18 @@ MODEL="HuggingFaceH4/zephyr-7b-beta"
 
 echo "[AI] Sending test request to HuggingFace Router..."
 
-RESPONSE=$(curl -s \
+curl -v \
     -X POST \
     -H "Authorization: Bearer $HF_TOKEN" \
     -H "Content-Type: application/json" \
     -d '{"inputs": "Say hello from Termux-Doctor."}' \
-    https://router.huggingface.co/$MODEL)
+    https://router.huggingface.co/$MODEL \
+    -o /tmp/ai_output.json
 
 echo
 echo "[AI] Raw Response:"
-echo "$RESPONSE"
+cat /tmp/ai_output.json
 echo
+
+
 
