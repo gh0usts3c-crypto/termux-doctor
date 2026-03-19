@@ -1,0 +1,41 @@
+﻿#!/data/data/com.termux/files/usr/bin/bash
+# Termux-Doctor: Main Entrypoint
+
+# Load modules
+BASE_DIR="/.."
+
+. "/lib/utils.sh"
+. "/modules/environment.sh"
+. "/modules/storage.sh"
+. "/modules/network.sh"
+. "/modules/packages.sh"
+. "/modules/system.sh"
+
+run_all_checks() {
+    log_header
+    echo
+
+    log_info "Running environment checks..."
+    check_environment
+    echo
+
+    log_info "Running storage checks..."
+    check_storage
+    echo
+
+    log_info "Running network checks..."
+    check_network
+    echo
+
+    log_info "Running package checks..."
+    check_packages
+    echo
+
+    log_info "Running system checks..."
+    check_system
+    echo
+
+    log_success "All checks completed."
+}
+
+run_all_checks
