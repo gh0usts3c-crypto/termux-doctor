@@ -2,7 +2,6 @@
 
 CONFIG_PATH="$HOME/.termux-doctor-ai"
 
-# Load token
 if [ ! -f "$CONFIG_PATH" ]; then
     echo "[AI] No config file found at $CONFIG_PATH"
     exit 1
@@ -18,6 +17,7 @@ fi
 MODEL="HuggingFaceH4/zephyr-7b-beta"
 
 echo "[AI] Sending test request to HuggingFace Router..."
+echo
 
 curl -v \
     -X POST \
@@ -29,8 +29,6 @@ curl -v \
 
 echo
 echo "[AI] Raw Response:"
-cat /tmp/ai_output.json
+cat /tmp/ai_output.json 2>/dev/null || echo "[AI] No output file was created."
 echo
-
-
 
