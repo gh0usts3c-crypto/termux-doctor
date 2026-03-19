@@ -1,17 +1,57 @@
 #!/usr/bin/env bash
+#=========================================================
+#  Termux-Doctor: Logging Engine
+#  Provides timestamped, colorized, and file-based logging
+#=========================================================
 
-log_info() {
-    echo -e "${CYAN}[INFO]${RESET} $1"
+# Load color engine
+source "$(dirname "$0")/colors.sh"
+
+#---------------------------------------------------------
+# Log file location
+#---------------------------------------------------------
+LOG_DIR="$HOME/.termux-doctor/logs"
+LOG_FILE="$LOG_DIR/doctor.log"
+
+# Ensure log directory exists
+mkdir -p "$LOG_DIR"
+
+#---------------------------------------------------------
+# Timestamp generator
+#---------------------------------------------------------
+timestamp() {
+    date +"%Y-%m-%d %H:%M:%S"
 }
 
-log_success() {
-    echo -e "${GREEN}[OK]${RESET} $1"
+#---------------------------------------------------------
+# Core logger
+# Usage: log "LEVEL" "message"
+#---------------------------------------------------------
+log() {
+    local level="$1"
+    local message="$2"
+    local ts
+    ts="$(timestamp)"
+
+    echo "[$ts] [$level] $message" >> "$LOG_FILE"
+}
+
+#---------------------------------------------------------
+# Public logging functions
+#---------------------------------------------------------
+log_info() {
+    log "INFO" "$1"
+    ok "$1"
 }
 
 log_warn() {
-    echo -e "${YELLOW}[WARN]${RESET} $1"
+    log "WARN" "$1"
+    warn "$1"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${RESET} $1"
+    log "ERROR" "$1"
+    err "$1"
 }
+
+# End of file
