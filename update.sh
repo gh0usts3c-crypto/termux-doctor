@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 #=========================================================
 #  Termux-Doctor Updater
@@ -14,9 +13,9 @@ echo -e "${CYAN}Checking for updates...${RESET}"
 echo
 
 #---------------------------------------------------------
-# GitHub Repository (CHANGE THIS TO YOUR REAL REPO)
+# GitHub Repository (UPDATED)
 #---------------------------------------------------------
-REPO_URL="https://github.com/Xntoxicated/termux-doctor.git"
+REPO_URL="https://github.com/gh0usts3c-crypto/termux-doctor.git"
 TMP_DIR="$HOME/.termux-doctor-update"
 
 #---------------------------------------------------------
@@ -67,5 +66,4 @@ else
 fi
 
 echo
-
 
