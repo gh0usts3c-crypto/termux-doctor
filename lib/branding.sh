@@ -1,16 +1,41 @@
 #!/usr/bin/env bash
+#=========================================================
+#  Termux-Doctor: Branding Engine
+#  Provides ASCII emblem, banners, and identity styling
+#=========================================================
 
-show_banner() {
-    echo -e "${BMAGENTA}"
-    echo "   ████████╗ ██████╗ ██╗  ██╗"
-    echo "   ╚══██╔══╝██╔═══██╗██║ ██╔╝"
-    echo "      ██║   ██║   ██║█████╔╝ "
-    echo "      ██║   ██║   ██║██╔═██╗ "
-    echo "      ██║   ╚██████╔╝██║  ██╗"
-    echo "      ╚═╝    ╚═════╝ ╚═╝  ╚═╝"
+# Load color engine
+source "$(dirname "$0")/colors.sh"
+
+#---------------------------------------------------------
+# CP-3 Cyber Biohazard Emblem (Symbol Only)
+#---------------------------------------------------------
+biohazard_emblem() {
+    echo -e "${MAGENTA}"
+    cat <<'EOF'
+        ███████████████████████████████████████
+        ████████▀▀▀░░░░░░░░░░░▀▀▀██████████████
+        ████▀░░░░░░░░░░░░░░░░░░░░░░▀███████████
+        ███░░░░░░░░░░░░░░░░░░░░░░░░░░██████████
+        ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░█████████
+        ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░█████████
+        ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░█████████
+        ███░░░░░░░░░░░░░░░░░░░░░░░░░░██████████
+        ████░░░░░░░░░░░░░░░░░░░░░░░░███████████
+        ██████▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█████████████
+EOF
     echo -e "${RESET}"
+}
 
-    echo -e "${BCYAN}        TOX • TERMUX DOCTOR${RESET}"
-    echo -e "${CYAN}        Cyberpunk Diagnostic Suite${RESET}"
+#---------------------------------------------------------
+# Banner Header
+#---------------------------------------------------------
+doctor_banner() {
+    clear
+    biohazard_emblem
+    echo -e "${CYAN}        Termux-Doctor — System Diagnostics Suite${RESET}"
+    echo -e "${BLUE}        Powered by Xntoxicated Cyber Systems${RESET}"
     echo
 }
+
+# End of file
