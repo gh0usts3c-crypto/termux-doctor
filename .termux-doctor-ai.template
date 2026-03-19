@@ -1,0 +1,4 @@
+API_KEY="PUT_YOUR_HF_TOKEN_HERE"
+ENDPOINT="https://api-inference.huggingface.co/models/google/flan-t5-base"
+MODEL="flan-t5-base"
+
