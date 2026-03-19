@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 #=========================================================
 #  Termux-Doctor: Network Diagnostics
 #  Tests connectivity, DNS, latency, and IP information
@@ -42,7 +42,7 @@ check_public_ip() {
             log_info "Public IP: $pip"
         fi
     else
-        warn "curl not installed — skipping public IP check"
+        warn "curl not installed â€” skipping public IP check"
     fi
 }
 

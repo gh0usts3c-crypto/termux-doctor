@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 CONFIG_PATH="$HOME/.termux-doctor-ai"
 

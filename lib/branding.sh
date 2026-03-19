@@ -1,41 +1,16 @@
-#!/usr/bin/env bash
-#=========================================================
-#  Termux-Doctor: Branding Engine
-#  Provides ASCII emblem, banners, and identity styling
-#=========================================================
+﻿#!/data/data/com.termux/files/usr/bin/bash
+# Termux-Doctor: Branding (Toxic Cyberpunk Edition)
 
-# Load color engine
-source "$(dirname "$0")/colors.sh"
+# Load colors
+. "/colors.sh"
 
-#---------------------------------------------------------
-# CP-3 Cyber Biohazard Emblem (Symbol Only)
-#---------------------------------------------------------
-biohazard_emblem() {
-    echo -e "${MAGENTA}"
-    cat <<'EOF'
-        ███████████████████████████████████████
-        ████████▀▀▀░░░░░░░░░░░▀▀▀██████████████
-        ████▀░░░░░░░░░░░░░░░░░░░░░░▀███████████
-        ███░░░░░░░░░░░░░░░░░░░░░░░░░░██████████
-        ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░█████████
-        ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░█████████
-        ██░░░░░░░░░░░░░░░░░░░░░░░░░░░░█████████
-        ███░░░░░░░░░░░░░░░░░░░░░░░░░░██████████
-        ████░░░░░░░░░░░░░░░░░░░░░░░░███████████
-        ██████▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█████████████
-EOF
-    echo -e "${RESET}"
-}
-
-#---------------------------------------------------------
-# Banner Header
-#---------------------------------------------------------
-doctor_banner() {
-    clear
-    biohazard_emblem
-    echo -e "${CYAN}        Termux-Doctor — System Diagnostics Suite${RESET}"
-    echo -e "${BLUE}        Powered by Xntoxicated Cyber Systems${RESET}"
+show_banner() {
+    echo -e "████████╗ ██████╗ ██╗  ██╗"
+    echo -e "╚══██╔══╝██╔═══██╗██║ ██╔╝"
+    echo -e "   ██║   ██║   ██║█████╔╝ "
+    echo -e "   ██║   ██║   ██║██╔═██╗ "
+    echo -e "   ██║   ╚██████╔╝██║  ██╗"
+    echo -e "   ╚═╝    ╚═════╝ ╚═╝  ╚═╝"
+    echo -e "   T E R M U X   D O C T O R"
     echo
 }
-
-# End of file

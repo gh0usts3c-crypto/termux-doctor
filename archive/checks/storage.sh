@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 #=========================================================
 #  Termux-Doctor: Storage Diagnostics
 #  Checks disk usage, storage permissions, and directories

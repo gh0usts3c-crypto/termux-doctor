@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 #=========================================================
 #  Termux-Doctor: Package Diagnostics
 #  Checks apt health, broken packages, and updates
@@ -27,7 +27,7 @@ check_broken_packages() {
             log_error "Broken packages: $broken"
         fi
     else
-        warn "dpkg not available — cannot check broken packages"
+        warn "dpkg not available â€” cannot check broken packages"
     fi
 }
 
@@ -48,7 +48,7 @@ check_updates() {
             log_warn "Updates available: $updates"
         fi
     else
-        warn "apt not available — skipping update check"
+        warn "apt not available â€” skipping update check"
     fi
 }
 
@@ -65,7 +65,7 @@ check_apt_health() {
             log_error "APT database update failed"
         fi
     else
-        warn "apt not available — cannot check database health"
+        warn "apt not available â€” cannot check database health"
     fi
 }
 

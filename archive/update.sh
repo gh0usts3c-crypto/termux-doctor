@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 install_ai_config() {
     CONFIG_PATH="$HOME/.termux-doctor-ai"

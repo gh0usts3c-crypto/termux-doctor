@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 #=========================================================
 #  Termux-Doctor Installer
 #  Installs the main executable into $PREFIX/bin
@@ -31,7 +31,7 @@ if command -v termux-doctor >/dev/null 2>&1; then
     echo -e "${MAGENTA}You can now run:${RESET}"
     echo -e "${CYAN}    termux-doctor${RESET}"
 else
-    echo -e "${RED}Installation failed — termux-doctor not found in PATH.${RESET}"
+    echo -e "${RED}Installation failed â€” termux-doctor not found in PATH.${RESET}"
 fi
 
 echo

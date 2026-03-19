@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 #=========================================================
 #  Termux-Doctor: Environment Diagnostics
 #  Checks PATH, shell, variables, and Termux environment
@@ -74,7 +74,7 @@ check_common_issues() {
     # ~/.bashrc or ~/.profile corruption
     if file_exists "$HOME/.bashrc"; then
         if grep -q "exit" "$HOME/.bashrc"; then
-            warn "~/.bashrc contains 'exit' — may break shell startup"
+            warn "~/.bashrc contains 'exit' â€” may break shell startup"
             log_warn "Suspicious exit in .bashrc"
         fi
     fi
