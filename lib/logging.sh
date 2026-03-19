@@ -1,57 +1,34 @@
-#!/usr/bin/env bash
-#=========================================================
-#  Termux-Doctor: Logging Engine
-#  Provides timestamped, colorized, and file-based logging
-#=========================================================
+﻿#!/data/data/com.termux/files/usr/bin/bash
+# Termux-Doctor: Logging Utilities
+# DO NOT EDIT ANYTHING IN THIS FILE EXCEPT THE HEADER TEXT BELOW.
 
-# Load color engine
-source "$(dirname "$0")/colors.sh"
+# ===== HEADER TEXT (SAFE TO EDIT LATER) =====
+HEADER_TEXT="Termux Doctor"
+# ============================================
 
-#---------------------------------------------------------
-# Log file location
-#---------------------------------------------------------
-LOG_DIR="$HOME/.termux-doctor/logs"
-LOG_FILE="$LOG_DIR/doctor.log"
+# Load colors
+. "/colors.sh"
 
-# Ensure log directory exists
-mkdir -p "$LOG_DIR"
-
-#---------------------------------------------------------
-# Timestamp generator
-#---------------------------------------------------------
-timestamp() {
-    date +"%Y-%m-%d %H:%M:%S"
-}
-
-#---------------------------------------------------------
-# Core logger
-# Usage: log "LEVEL" "message"
-#---------------------------------------------------------
-log() {
-    local level="$1"
-    local message="$2"
-    local ts
-    ts="$(timestamp)"
-
-    echo "[$ts] [$level] $message" >> "$LOG_FILE"
-}
-
-#---------------------------------------------------------
-# Public logging functions
-#---------------------------------------------------------
 log_info() {
-    log "INFO" "$1"
-    ok "$1"
+    echo -e "[INFO] "
+}
+
+log_success() {
+    echo -e "[OK] "
 }
 
 log_warn() {
-    log "WARN" "$1"
-    warn "$1"
+    echo -e "[WARN] "
 }
 
 log_error() {
-    log "ERROR" "$1"
-    err "$1"
+    echo -e "[ERROR] "
 }
 
-# End of file
+log_recommend() {
+    echo -e "[RECOMMEND] "
+}
+
+log_header() {
+    echo -e "===  ==="
+}
