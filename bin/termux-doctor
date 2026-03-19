@@ -1,17 +1,22 @@
 ﻿#!/data/data/com.termux/files/usr/bin/bash
 # Termux-Doctor: Main Entrypoint
 
-# Load modules\n. "$BASE_DIR/lib/branding.sh"
-BASE_DIR="/.."
+# Resolve absolute project directory
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-. "/lib/utils.sh"
-. "/modules/environment.sh"
-. "/modules/storage.sh"
-. "/modules/network.sh"
-. "/modules/packages.sh"
-. "/modules/system.sh"
+# Load libraries
+. "$BASE_DIR/lib/branding.sh"
+. "$BASE_DIR/lib/utils.sh"
 
-run_all_checks() {\n    show_banner
+# Load modules
+. "$BASE_DIR/modules/environment.sh"
+. "$BASE_DIR/modules/storage.sh"
+. "$BASE_DIR/modules/network.sh"
+. "$BASE_DIR/modules/packages.sh"
+. "$BASE_DIR/modules/system.sh"
+
+run_all_checks() {
+    show_banner
     log_header
     echo
 
