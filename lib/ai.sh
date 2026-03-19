@@ -1,22 +1,33 @@
-#!/data/data/com.termux/files/usr/bin/bash
+#!/bin/bash
 
-ai_analyze() {
-    local input_data="$1"
+CONFIG_PATH="$HOME/.termux-doctor-ai"
 
-    # Load API key + endpoint
-    source "$HOME/.termux-doctor-ai"
+# Load token
+if [ ! -f "$CONFIG_PATH" ]; then
+    echo "[AI] No config file found at $CONFIG_PATH"
+    exit 1
+fi
 
-    if [ -z "$API_KEY" ]; then
-        echo -e "\e[31m[ERROR]\e[0m No API key found in ~/.termux-doctor-ai"
-        return 1
-    fi
+source "$CONFIG_PATH"
 
-    # Send diagnostics to HuggingFace free model
-    response=$(curl -s -X POST "$ENDPOINT" \
-        -H "Authorization: Bearer $API_KEY" \
-        -H "Content-Type: application/json" \
-        -d "{\"inputs\": \"Explain this: $input_data\"}")
+if [ -z "$HF_TOKEN" ]; then
+    echo "[AI] HF_TOKEN is missing in $CONFIG_PATH"
+    exit 1
+fi
 
-    echo "$response"
-}
+MODEL="mistralai/Mistral-7B-Instruct-v0.2"
+
+echo "[AI] Sending test request to HuggingFace..."
+
+RESPONSE=$(curl -s \
+    -X POST \
+    -H "Authorization: Bearer $HF_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"inputs": "Say hello from Termux-Doctor."}' \
+    https://api-inference.huggingface.co/models/$MODEL)
+
+echo
+echo "[AI] Response:"
+echo "$RESPONSE"
+echo
 
