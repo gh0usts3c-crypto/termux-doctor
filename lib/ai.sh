@@ -17,9 +17,7 @@ fi
 
 MODEL="HuggingFaceH4/zephyr-7b-beta"
 
-
-
-echo "[AI] Sending test request to HuggingFace..."
+echo "[AI] Sending test request to HuggingFace Router..."
 
 RESPONSE=$(curl -s \
     -X POST \
@@ -28,10 +26,8 @@ RESPONSE=$(curl -s \
     -d '{"inputs": "Say hello from Termux-Doctor."}' \
     https://router.huggingface.co/$MODEL)
 
-
-
 echo
-echo "[AI] Response:"
+echo "[AI] Raw Response:"
 echo "$RESPONSE"
 echo
 
