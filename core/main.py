@@ -21,9 +21,7 @@ def save_key(new_key):
     return clean_key
 
 def get_key():
-    if not os.path.exists(CONFIG_PATH):
-        print(f"{Y}🔑 [FIRST RUN] Please enter your Gemini API Key:{RS}")
-        return save_key(input("> "))
+    if not os.path.exists(CONFIG_PATH): return None
     with open(CONFIG_PATH, 'r') as f:
         return f.read().strip()
 
@@ -31,37 +29,44 @@ def main():
     print_banner()
     api_key = get_key()
     
-    # Force the client to use the stable 2026 production environment
-    try:
-        client = genai.Client(api_key=api_key, http_options={'api_version': 'v1'})
-        # Use the fully qualified model name
-        STABLE_MODEL = "gemini-1.5-flash"
+    if not api_key:
+        print(f"{Y}[!] No API Key stored. Please use 'update key' to add one.{RS}")
+    
+    while True:
+        # We DON'T try to connect here anymore. We just wait for input.
+        user_input = input(f"\n{G}Dr. Prompt > {RS}").strip()
         
-        print(f"{G}🩺 Doctor Online (v1 Stable Path Active){RS}")
+        if not user_input: continue
         
-        while True:
-            user_input = input(f"\n{G}Dr. Prompt > {RS}").strip()
-            if not user_input: continue
-            if user_input.lower() in ['exit', 'quit']: sys.exit(0)
+        # 1. EMERGENCY ESCAPE
+        if user_input.lower() in ['exit', 'quit']:
+            print(f"{Y}👋 Closing the clinic...{RS}")
+            sys.exit(0)
             
-            if user_input.lower() == 'update key':
-                print(f"{Y}🔑 Enter New API Key:{RS}")
-                api_key = save_key(input("> "))
-                client = genai.Client(api_key=api_key, http_options={'api_version': 'v1'})
-                print(f"{G}✅ Key Updated.{RS}")
-                continue
+        # 2. KEY MANAGEMENT (Always accessible)
+        if user_input.lower() == 'update key':
+            print(f"{Y}🔑 Paste New API Key (or type 'cancel' to return):{RS}")
+            new_val = input("> ").strip()
+            if new_val.lower() != 'cancel':
+                api_key = save_key(new_val)
+                print(f"{G}✅ Key Saved.{RS}")
+            continue
 
-            # Standard Content Generation
+        # 3. AI DIAGNOSIS (Only tries when key is present)
+        if not api_key:
+            print(f"{R}❌ Error: You must 'update key' before diagnosing.{RS}")
+            continue
+
+        try:
+            client = genai.Client(api_key=api_key, http_options={'api_version': 'v1'})
             response = client.models.generate_content(
-                model=STABLE_MODEL, 
+                model="gemini-1.5-flash", 
                 contents=user_input
             )
             print(f"\n{Y}👨‍⚕️ [Doctor]:{RS}\n{response.text}")
-                
-    except Exception as e:
-        print(f"{R}❌ System Error: {e}{RS}")
-        if "400" in str(e):
-            print(f"{Y}💡 Tip: Use 'update key' to try a fresh key from AI Studio.{RS}")
+        except Exception as e:
+            print(f"{R}❌ Handshake Failed: {e}{RS}")
+            print(f"{Y}💡 Tip: Your key might be invalid. Type 'update key' to try another.{RS}")
 
 if __name__ == '__main__':
     main()
