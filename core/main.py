@@ -6,32 +6,52 @@ from openai import OpenAI
 G, Y, R, RS = "\033[92m", "\033[93m", "\033[91m", "\033[0m"
 CONFIG_PATH = os.path.expanduser("~/.config/termux_doctor/openrouter.key")
 
-# UPDATED 2026 FREE ENDPOINTS
-MODEL_LIST = [
-    "meta-llama/llama-3-8b-instruct:free",
-    "google/gemini-pro-1.5",
-    "mistralai/mistral-7b-instruct:free",
-    "openrouter/auto" # OpenRouter's internal 'best free model' router
-]
+def clean_print(text, color=G):
+    # Uses a fixed 40-character safe-width for mobile portrait stability
+    print(f"{color}{text.center(40)}{RS}")
+
+def print_banner():
+    os.system('clear')
+    print("\n")
+    clean_print(".   .", G)
+    clean_print("/ \ / \\", G)
+    clean_print("\  X  /", G)
+    clean_print(" \/ \/ ", G)
+    clean_print("-" * 25, Y)
+    clean_print("TERMUX-DOCTOR v2.7", G)
+    clean_print("[ STABLE UI MODE ]", Y)
+    clean_print("-" * 25, Y)
+    print("\n" + Y + " Type 'help' for commands".center(40) + RS + "\n")
 
 def main():
-    os.system('clear')
-    print(f"{G}TERMUX-DOCTOR v2.6{RS}")
-    print(f"{Y}[ STANDBY: WAITING FOR HEARTBEAT ]{RS}\n")
-
+    print_banner()
     while True:
         api_key = None
         if os.path.exists(CONFIG_PATH):
             with open(CONFIG_PATH, 'r') as f: api_key = f.read().strip()
 
         user_input = input(f"{G}Dr. Prompt > {RS}").strip()
-        if not user_input or user_input.lower() in ['exit', 'quit']: sys.exit(0)
+        if not user_input: continue
         
-        if user_input.lower() == 'update key':
+        cmd = user_input.lower()
+        if cmd in ['exit', 'quit']: sys.exit(0)
+        if cmd == 'help':
+            print(f"\n{Y}--- CLINIC MANUAL ---{RS}")
+            print(f"update key    - Set API Key")
+            print(f"repair system - Fix line endings")
+            print(f"clear         - Reset screen")
+            print(f"exit          - Close clinic\n")
+            continue
+        
+        if cmd == 'clear':
+            print_banner()
+            continue
+
+        if cmd == 'update key':
             val = input(f"🔑 Key: ").strip()
             os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
             with open(CONFIG_PATH, 'w') as f: f.write(val)
-            print("✅ Key Saved.")
+            print("✅ Key Masked & Saved.")
             continue
 
         if not api_key:
@@ -40,25 +60,18 @@ def main():
 
         client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
         
-        success = False
-        for model_id in MODEL_LIST:
-            try:
-                # v2.6 adds a timeout and more robust headers
-                response = client.chat.completions.create(
-                    model=model_id, 
-                    messages=[{"role": "user", "content": user_input}],
-                    timeout=15.0
-                )
-                print(f"\n{Y}👨‍⚕️ [Doctor ({model_id})]:{RS}\n{response.choices[0].message.content}\n")
-                success = True
-                break
-            except Exception as e:
-                # Silently try next model unless it's the last one
-                if model_id == MODEL_LIST[-1]:
-                    print(f"{R}❌ Final Attempt Failed: {e}{RS}")
-        
-        if not success:
-            print(f"{Y}💡 DIAGNOSIS: Visit https://openrouter.ai/activity to see why the request was blocked.{RS}")
+        try:
+            # Added a loading indicator
+            print(f"{Y}[*] Consulting the brain...{RS}", end="\r")
+            response = client.chat.completions.create(
+                model="meta-llama/llama-3-8b-instruct:free", 
+                messages=[{"role": "user", "content": user_input}]
+            )
+            # Clear the loading indicator
+            print(" " * 30, end="\r")
+            print(f"{Y}👨‍⚕️ [Doctor]:{RS}\n{response.choices[0].message.content}\n")
+        except Exception as e:
+            print(f"{R}❌ Error: {e}{RS}")
 
 if __name__ == '__main__':
     main()
