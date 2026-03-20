@@ -1,35 +1,28 @@
 ﻿#!/data/data/com.termux/files/usr/bin/bash
-echo "🩺 Starting Phoenix Reinstall..."
+echo "🩺 Performing Absolute Path Reconstruction..."
 
-# 1. Clean up old artifacts
+# 1. Purge and Refresh
 rm -rf ~/.termux_doctor
-rm -rf ~/.config/termux_doctor
+pkg update -y
+pkg install python git clang rust binutils -y
 
-# 2. System-Level Dependencies (The 2026 'Magic' List)
-pkg update -y && pkg upgrade -y
-pkg install unstable-repo x11-repo -y
-pkg update
-pkg install python python-cryptography python-pydantic python-grpcio \
-            python-typing-extensions clang rust binutils git termux-api -y
+# 2. Get the Dynamic Python Path
+PY_VER=3.14
+PY_PATH="/data/data/com.termux/files/usr/lib/python$PY_VER/site-packages"
 
-# 3. Environment Variable Injection
-export ANDROID_API_LEVEL=26
-export PYTHONPATH=$PYTHONPATH:/data/data/com.termux/files/usr/bin/python3.11/site-packages
+# 3. Force-Install the 'Google' Namespace into that path
+pip install --upgrade pip
+pip install google-api-core google-generativeai
 
-# 4. Pip Force-Link (Fixes the 'No module named google' error)
-pip install --upgrade pip setuptools wheel
-echo "📦 Injecting AI Core and Google Namespace..."
-pip install google-api-core
-pip install google-generativeai --no-build-isolation
-
-# 5. Repository Sync
+# 4. Clone and Create the Global Alias with Dynamic Pathing
 REPO_URL="https://github.com/gh0usts3c-crypto/Termux-Doctor.git"
 git clone $REPO_URL ~/.termux_doctor
 
-# 6. Global Alias Update
-if ! grep -q "alias doctor=" ~/.bashrc; then
-    echo "alias doctor='PYTHONPATH=/data/data/com.termux/files/usr/lib/python3.11/site-packages python ~/.termux_doctor/core/main.py'" >> ~/.bashrc
+# We write the alias to handle the PYTHONPATH automatically
+echo "alias doctor='PYTHONPATH=$PY_PATH python ~/.termux_doctor/core/main.py'" > ~/.termux_doctor_alias
+if ! grep -q "termux_doctor_alias" ~/.bashrc; then
+    echo "source ~/.termux_doctor_alias" >> ~/.bashrc
 fi
 source ~/.bashrc
 
-echo "✅ PHOENIX DEPLOYMENT COMPLETE! Type 'doctor'."
+echo "✅ Absolute Fix Applied. Type 'doctor' to test."
