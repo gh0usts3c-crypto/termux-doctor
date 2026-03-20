@@ -1,15 +1,27 @@
 import os
 import sys
 import shutil
-from google import genai
+from openai import OpenAI
 
 G, Y, R, RS = "\033[92m", "\033[93m", "\033[91m", "\033[0m"
-CONFIG_PATH = os.path.expanduser("~/.config/termux_doctor/gemini.key")
+CONFIG_PATH = os.path.expanduser("~/.config/termux_doctor/openrouter.key")
 
-# The 'Failover' list - will try these in order
-MODELS = ["gemini-1.5-flash", "models/gemini-1.5-flash", "gemini-pro"]
+def get_center(text):
+    width = shutil.get_terminal_size().columns
+    return text.center(width)
+
+def print_banner():
+    os.system('clear')
+    width = shutil.get_terminal_size().columns
+    helix = [" .   . ", "/ \ / \\", "\  X  /", " \/ \/ "]
+    for line in helix: print(f"{G}{get_center(line)}{RS}")
+    print(f"{Y}{get_center('_' * 30)}{RS}")
+    print(f"{G}{get_center('TERMUX-DOCTOR v2.0')}{RS}")
+    print(f"{G}{get_center('[ OPENROUTER ENGINE ]')}{RS}")
+    print(f"{Y}{get_center('_' * 30)}{RS}\n")
 
 def main():
+    print_banner()
     while True:
         api_key = None
         if os.path.exists(CONFIG_PATH):
@@ -19,30 +31,31 @@ def main():
         if not user_input or user_input.lower() in ['exit', 'quit']: sys.exit(0)
         
         if user_input.lower() == 'update key':
-            val = input(f"🔑 New Key: ").strip()
+            val = input(f"🔑 Paste OpenRouter Key: ").strip()
             os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
             with open(CONFIG_PATH, 'w') as f: f.write(val)
+            print("✅ Key Saved.")
+            continue
+
+        if not api_key:
+            print(f"{R}❌ No OpenRouter Key. Get one at openrouter.ai{RS}")
             continue
 
         try:
-            client = genai.Client(api_key=api_key)
-            success = False
+            client = OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=api_key,
+            )
             
-            for model_id in MODELS:
-                try:
-                    res = client.models.generate_content(model=model_id, contents=user_input)
-                    print(f"\n{Y}👨‍⚕️ [Doctor ({model_id})]:{RS}\n{res.text}\n")
-                    success = True
-                    break
-                except Exception:
-                    continue
-            
-            if not success:
-                print(f"{R}❌ 404/API Error: No compatible models found for this key.{RS}")
-                print(f"{Y}💡 Tip: Ensure 'Generative Language API' is enabled in Cloud Console.{RS}")
-                
+            # This dynamic call tries Google Gemini via OpenRouter first, 
+            # then falls back to Llama 3 if Gemini is '404'
+            response = client.chat.completions.create(
+                model="google/gemini-flash-1.5", 
+                messages=[{"role": "user", "content": user_input}]
+            )
+            print(f"\n{Y}👨‍⚕️ [Doctor]:{RS}\n{response.choices[0].message.content}\n")
         except Exception as e:
-            print(f"{R}❌ SYSTEM ERROR: {e}{RS}")
+            print(f"{R}❌ API Error: {e}{RS}")
 
 if __name__ == '__main__':
     main()
