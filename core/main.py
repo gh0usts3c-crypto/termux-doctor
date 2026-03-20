@@ -2,8 +2,8 @@ import os
 import sys
 from google import genai
 
-# DNA Banner Colors
 G, Y, R, RS = "\033[92m", "\033[93m", "\033[91m", "\033[0m"
+CONFIG_PATH = os.path.expanduser("~/.config/termux_doctor/gemini.key")
 
 def print_banner():
     os.system('clear')
@@ -13,44 +13,50 @@ def print_banner():
     print(f"{G}    \   /  \   /{Y}     |{G}        > Network DNA Analysis v1.0 <{Y}        |{RS}")
     print(f"{G}     \_/    \_/{Y}      |_____________________________________________|{RS}")
 
-def get_clean_key():
-    path = os.path.expanduser("~/.config/termux_doctor/gemini.key")
-    if not os.path.exists(path): return None
-    with open(path, 'r') as f:
-        # STRIP ALL: Newlines, spaces, and hidden Windows carriage returns
-        return f.read().replace('\n', '').replace('\r', '').strip()
+def save_key(new_key):
+    os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+    clean_key = new_key.replace('\n', '').replace('\r', '').strip()
+    with open(CONFIG_PATH, 'w') as f:
+        f.write(clean_key)
+    return clean_key
+
+def get_key():
+    if not os.path.exists(CONFIG_PATH):
+        print(f"{Y}🔑 [FIRST RUN] Please enter your Gemini API Key:{RS}")
+        return save_key(input("> "))
+    with open(CONFIG_PATH, 'r') as f:
+        return f.read().strip()
 
 def main():
     print_banner()
-    raw_key = get_clean_key()
+    api_key = get_key()
     
-    if not raw_key:
-        print(f"{R}❌ Error: API Key not found in ~/.config/termux_doctor/gemini.key{RS}")
-        return
-
-    # Diagnostic: Show partial key to verify it loaded correctly
-    print(f"{Y}[*] Loading Key: {raw_key[:4]}...{raw_key[-4:]}{RS}")
-
-    try:
-        client = genai.Client(api_key=raw_key)
-        # 2026 Test Pulse (Downgraded to 1.5 for maximum compatibility)
-        print(f"{Y}[*] Attempting Handshake with Gemini 1.5 Flash...{RS}")
-        
-        response = client.models.generate_content(model="gemini-1.5-flash", contents="Hi")
-        print(f"{G}✅ Connection Established! Doctor is Online.{RS}")
-        
-        while True:
-            cmd = input(f"\n{G}Dr. Prompt > {RS}")
-            if cmd.lower() in ['exit', 'quit']: break
-            res = client.models.generate_content(model="gemini-1.5-flash", contents=cmd)
-            print(f"\n{Y}👨‍⚕️ [Doctor]:{RS}\n{res.text}")
+    while True:
+        try:
+            client = genai.Client(api_key=api_key)
+            print(f"{G}🩺 Doctor Online (Key: {api_key[:4]}...{api_key[-4:]}){RS}")
             
-    except Exception as e:
-        print(f"{R}❌ Handshake Failed: {e}{RS}")
-        if "400" in str(e):
-            print(f"{Y}💡 ANALYSIS: Your key was sent, but Google rejected it.{RS}")
-            print(f"{Y}1. Check if the key in AI Studio matches: {raw_key[:4]}...{RS}")
-            print(f"{Y}2. Ensure your Google Cloud Project has the 'Generative Language API' enabled.{RS}")
+            while True:
+                user_input = input(f"\n{G}Dr. Prompt > {RS}").strip()
+                
+                if user_input.lower() in ['exit', 'quit']: sys.exit(0)
+                
+                # KEY ROTATION COMMAND
+                if user_input.lower() == 'update key':
+                    print(f"{Y}🔑 Enter New API Key (or type 'cancel'):{RS}")
+                    new_val = input("> ").strip()
+                    if new_val.lower() != 'cancel':
+                        api_key = save_key(new_val)
+                        print(f"{G}✅ Key Updated. Reconnecting...{RS}")
+                        break # Break inner loop to re-init client
+                    continue
+
+                response = client.models.generate_content(model="gemini-1.5-flash", contents=user_input)
+                print(f"\n{Y}👨‍⚕️ [Doctor]:{RS}\n{response.text}")
+                
+        except Exception as e:
+            print(f"{R}❌ Error: {e}{RS}")
+            api_key = save_key(input(f"{Y}Please enter a valid key to try again: {RS}"))
 
 if __name__ == '__main__':
     main()
