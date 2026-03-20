@@ -9,11 +9,9 @@ def run(tools):
     
     try:
         subnet = tools.get_subnet()
-        # Silent Pulse
         p = subprocess.run(f"nmap -sn --max-rate 10 {subnet}", shell=True, capture_output=True, text=True)
         if p.returncode != 0: tools.log_error("Pulse", p.stderr.strip())
 
-        # Kernel Harvest
         raw_neigh = subprocess.check_output("ip neigh show", shell=True).decode()
         print(f"\n{G}IP ADDRESS      | HW-VENDOR         | PROBE{RS}")
         print(f"{G}----------------|-------------------|------------{RS}")
@@ -27,7 +25,6 @@ def run(tools):
                 try:
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                         s.settimeout(0.3)
-                        # Checking Apple Sync Port
                         if s.connect_ex((ip, 62078)) == 0: hint = f"{G}Confirmed Apple{RS}"
                 except Exception as e: tools.log_error(f"Socket-{ip}", str(e))
                 
