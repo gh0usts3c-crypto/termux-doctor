@@ -1,17 +1,15 @@
 ﻿#!/data/data/com.termux/files/usr/bin/bash
-echo "🩺 Starting Advanced System Repair..."
+echo "🩺 Starting High-Speed Diagnostic Install..."
 
-# 1. Enable TUR (Termux User Repository) - This is where Pydantic lives now
-pkg update -y
-pkg install tur-repo -y
-pkg update
+# 1. Update system
+pkg update -y && pkg upgrade -y
+pkg install python clang rust git binutils -y
 
-# 2. Install the modern binaries from TUR
-# This bypasses the Rust/Metadata issue entirely
-pkg install python python-cryptography python-pydantic-core clang rust git -y
+# 2. INSTALL PRE-COMPILED PYDANTIC-CORE (The Speed Hack)
+echo "⚡ Downloading pre-built Android binaries..."
+pip install pydantic-core --extra-index-url https://eutalix.github.io/android-pydantic-core/
 
-# 3. Install the NEW 2026 Google GenAI SDK
-# Note: 'google-generativeai' is being replaced by 'google-genai'
+# 3. Install remaining AI components
 pip install --upgrade pip
 pip install google-genai
 
@@ -25,4 +23,4 @@ if ! grep -q "termux_doctor_alias" ~/.bashrc; then
 fi
 source ~/.bashrc
 
-python ~/.termux_doctor/core/main.py
+echo "✅ Speed Hack Applied! Type 'doctor'."
