@@ -25,41 +25,43 @@ def get_api_key():
     if os.path.exists(config_path):
         with open(config_path, "r") as f:
             return f.read().strip()
-    else:
-        os.makedirs(os.path.dirname(config_path), exist_ok=True)
-        print(f"{Y}🔑 [NEW DOCTOR DETECTED]{RS}")
-        key = input("Please paste your Gemini API Key: ")
-        with open(config_path, "w") as f:
-            f.write(key)
-        return key
+    return None
 
 def main():
     os.system('clear')
     print_banner()
     
-    # Pre-flight check
-    print(f"{G}✅ System Vitals: NOMINAL{RS}")
-    
     api_key = get_api_key()
+    if not api_key:
+        print(f"{R}❌ No API Key found. Run the setup again.{RS}")
+        sys.exit(1)
     
     try:
-        # 2026 SDK Client
+        # 2026 GenAI SDK Client
         client = genai.Client(api_key=api_key)
-        print(f"{G}🩺 Doctor is Online. How can I help with your network today?{RS}")
+        
+        # WE ARE NOW USING THE 2026 STABLE FLASH MODEL
+        # Options: "gemini-2.5-flash" or "gemini-3-flash-preview"
+        ACTIVE_MODEL = "gemini-2.5-flash"
+        
+        print(f"{G}🩺 Doctor is Online using {ACTIVE_MODEL}.{RS}")
         
         while True:
             user_input = input(f"\n{G}Dr. Prompt > {RS}")
             if user_input.lower() in ['exit', 'quit']: break
             
-            # Use the 2026 Flash 2.0 model
+            # API Call with 2026 Parameters
             response = client.models.generate_content(
-                model="gemini-2.0-flash", 
+                model=ACTIVE_MODEL, 
                 contents=user_input
             )
             print(f"\n{Y}👨‍⚕️ [Doctor's Insight]:{RS}\n{response.text}")
             
     except Exception as e:
+        # Detailed error reporting for debugging
         print(f"{R}❌ Doctor Error: {e}{RS}")
+        if "API key not valid" in str(e):
+            print(f"{Y}💡 Tip: Check if billing is enabled or try a new key from AI Studio.{RS}")
 
 if __name__ == '__main__':
     main()
