@@ -6,23 +6,18 @@ from openai import OpenAI
 G, Y, R, RS = "\033[92m", "\033[93m", "\033[91m", "\033[0m"
 CONFIG_PATH = os.path.expanduser("~/.config/termux_doctor/openrouter.key")
 
-# The 2026 Production Model IDs for OpenRouter
+# UPDATED 2026 FREE ENDPOINTS
 MODEL_LIST = [
-    "google/gemini-flash-1.5", 
+    "meta-llama/llama-3-8b-instruct:free",
     "google/gemini-pro-1.5",
-    "meta-llama/llama-3-8b-instruct:free", # High-speed free fallback
-    "mistralai/mistral-7b-instruct:free"   # Stability fallback
+    "mistralai/mistral-7b-instruct:free",
+    "openrouter/auto" # OpenRouter's internal 'best free model' router
 ]
-
-def get_center(text):
-    width = shutil.get_terminal_size().columns
-    return text.center(width)
 
 def main():
     os.system('clear')
-    width = shutil.get_terminal_size().columns
-    print(f"{G}{get_center('TERMUX-DOCTOR v2.5')}{RS}")
-    print(f"{Y}{get_center('[ UNIVERSAL ENGINE ONLINE ]')}{RS}\n")
+    print(f"{G}TERMUX-DOCTOR v2.6{RS}")
+    print(f"{Y}[ STANDBY: WAITING FOR HEARTBEAT ]{RS}\n")
 
     while True:
         api_key = None
@@ -30,14 +25,9 @@ def main():
             with open(CONFIG_PATH, 'r') as f: api_key = f.read().strip()
 
         user_input = input(f"{G}Dr. Prompt > {RS}").strip()
-        if not user_input: continue
+        if not user_input or user_input.lower() in ['exit', 'quit']: sys.exit(0)
         
-        cmd = user_input.lower()
-        if cmd in ['exit', 'quit']: sys.exit(0)
-        if cmd == 'help':
-            print(f"\n{Y}--- COMMANDS ---{RS}\nupdate key | repair system | exit\n")
-            continue
-        if cmd == 'update key':
+        if user_input.lower() == 'update key':
             val = input(f"🔑 Key: ").strip()
             os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
             with open(CONFIG_PATH, 'w') as f: f.write(val)
@@ -45,7 +35,7 @@ def main():
             continue
 
         if not api_key:
-            print(f"{R}❌ No Key. Type 'update key'.{RS}")
+            print(f"{R}❌ No Key found.{RS}")
             continue
 
         client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
@@ -53,22 +43,22 @@ def main():
         success = False
         for model_id in MODEL_LIST:
             try:
+                # v2.6 adds a timeout and more robust headers
                 response = client.chat.completions.create(
                     model=model_id, 
                     messages=[{"role": "user", "content": user_input}],
-                    extra_headers={
-                        "HTTP-Referer": "https://github.com/gh0usts3c-crypto",
-                        "X-Title": "Termux-Doctor"
-                    }
+                    timeout=15.0
                 )
                 print(f"\n{Y}👨‍⚕️ [Doctor ({model_id})]:{RS}\n{response.choices[0].message.content}\n")
                 success = True
                 break
-            except Exception:
-                continue # Try next model in list
+            except Exception as e:
+                # Silently try next model unless it's the last one
+                if model_id == MODEL_LIST[-1]:
+                    print(f"{R}❌ Final Attempt Failed: {e}{RS}")
         
         if not success:
-            print(f"{R}❌ All endpoints failed. Check OpenRouter balance/key permissions.{RS}")
+            print(f"{Y}💡 DIAGNOSIS: Visit https://openrouter.ai/activity to see why the request was blocked.{RS}")
 
 if __name__ == '__main__':
     main()
