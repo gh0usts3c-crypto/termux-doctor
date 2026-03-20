@@ -1,26 +1,36 @@
 import os
 import subprocess
+import re
 
 def run():
-    target = input("\033[93m[?] Enter Target IP: \033[0m").strip()
+    target = input("\033[93m[?] Target IP for Passive Audit: \033[0m").strip()
     if not target: return
 
-    print(f"\033[93m[*] Waking up neighbor table for {target}... (Low Noise)\033[0m")
+    print(f"\033[93m[*] Initiating Ghost Discovery for {target}...\033[0m")
     
-    # Send 1 single ping to 'tickle' the ARP cache
-    subprocess.run(["ping", "-c", "1", "-W", "1", target], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        # STEP 1: Layer-2 ARP Query (No ICMP/Ping)
+        # --send-eth forces Layer-2 bypassing the OS IP stack
+        cmd = f"nmap -sn -PR --send-eth {target}"
+        output = subprocess.check_output(cmd, shell=True).decode()
+        
+        # Regex for MAC and Vendor
+        mac_match = re.search(r"MAC Address: ([0-9A-F:]{17}) \((.*?)\)", output, re.IGNORECASE)
+        
+        if mac_match:
+            print(f"\033[92m[+] [L2-SUCCESS] Identity: {mac_match.group(2)}\033[0m")
+            print(f"\033[94m    Hardware ID: {mac_match.group(1)}\033[0m")
+        else:
+            print("\033[93m[!] Target is masked. Transitioning to TCP-ACK Discovery...\033[0m")
+            # STEP 2: TCP ACK Scan (Does not open a connection)
+            os.system(f"nmap -sn -PA {target}")
 
-    print("\033[94m[1/2] Extracting MAC/Vendor Data...\033[0m")
-    # Grab the neighbor entry now that it's 'awake'
-    neighbor = subprocess.check_output(f"ip neighbor show {target}", shell=True).decode().strip()
-    
-    if neighbor:
-        print(f"\033[92m[+] Identity Found: {neighbor}\033[0m")
-    else:
-        print("\033[91m[!] Passive lookup failed. Device may be blocking ICMP.\033[0m")
+        # STEP 3: Passive Service Fingerprinting
+        # -sV: Version, --version-intensity 0: Only read the initial banner (Very Quiet)
+        print("\033[94m[*] Attempting Passive Banner Grab (Intensity 0)...\033[0m")
+        os.system(f"nmap -sV --version-intensity 0 -T2 -Pn {target}")
+        
+    except Exception as e:
+        print(f"\033[91m❌ Protocol Error: {e}\033[0m")
 
-    print("\033[94m[2/2] Running OS/Banner Fingerprint (Stealth Mode)...\033[0m")
-    # -O: OS Detection, -sV: Service Detection, -T2: Polite
-    os.system(f"nmap -sV -O -T2 -Pn --max-retries 1 {target}")
-    
-    print("\033[92m✅ Audit Complete.\033[0m")
+    print("\033[92m✅ Noiseless Audit Complete.\033[0m")
