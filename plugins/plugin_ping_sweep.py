@@ -1,3 +1,4 @@
+DOC = "Maps all active devices on your local WiFi subnet."
 def run(tools):
     target = tools.get_subnet()
     print(f"\033[93m[*] Sweeping {target} (User-Mode)...\033[0m")
