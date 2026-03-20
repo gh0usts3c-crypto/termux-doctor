@@ -1,28 +1,35 @@
 ﻿#!/data/data/com.termux/files/usr/bin/bash
-echo "🩺 Starting Termux-Doctor Optimized Install..."
+echo "🩺 Starting Phoenix Reinstall..."
 
-# 1. Repos and System updates
+# 1. Clean up old artifacts
+rm -rf ~/.termux_doctor
+rm -rf ~/.config/termux_doctor
+
+# 2. System-Level Dependencies (The 2026 'Magic' List)
 pkg update -y && pkg upgrade -y
 pkg install unstable-repo x11-repo -y
 pkg update
+pkg install python python-cryptography python-pydantic python-grpcio \
+            python-typing-extensions clang rust binutils git termux-api -y
 
-# 2. Install ALL heavy C++/Rust binaries via 'pkg' to avoid 'pip' builds
-pkg install python python-cryptography python-pydantic python-grpcio clang rust binutils git termux-api -y
+# 3. Environment Variable Injection
+export ANDROID_API_LEVEL=26
+export PYTHONPATH=$PYTHONPATH:/data/data/com.termux/files/usr/bin/python3.11/site-packages
 
-# 3. Finalize AI Core using system-linked libraries
+# 4. Pip Force-Link (Fixes the 'No module named google' error)
 pip install --upgrade pip setuptools wheel
-echo "📦 Finalizing AI Core... (Optimized for pre-compiled binaries)"
+echo "📦 Injecting AI Core and Google Namespace..."
+pip install google-api-core
 pip install google-generativeai --no-build-isolation
 
-# 4. Repository Sync
+# 5. Repository Sync
 REPO_URL="https://github.com/gh0usts3c-crypto/Termux-Doctor.git"
-rm -rf ~/.termux_doctor
 git clone $REPO_URL ~/.termux_doctor
 
-# 5. Alias Setup
+# 6. Global Alias Update
 if ! grep -q "alias doctor=" ~/.bashrc; then
-    echo "alias doctor='python ~/.termux_doctor/core/main.py'" >> ~/.bashrc
+    echo "alias doctor='PYTHONPATH=/data/data/com.termux/files/usr/lib/python3.11/site-packages python ~/.termux_doctor/core/main.py'" >> ~/.bashrc
 fi
 source ~/.bashrc
 
-echo "✅ Optimization Complete! Type 'doctor' to launch."
+echo "✅ PHOENIX DEPLOYMENT COMPLETE! Type 'doctor'."
