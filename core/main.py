@@ -1,23 +1,17 @@
-VERSION = '3.2.1'
 import os
 import sys
-import time
 from openai import OpenAI
 
 G, Y, R, RS = "\033[92m", "\033[93m", "\033[91m", "\033[0m"
 CONFIG_PATH = os.path.expanduser("~/.config/termux_doctor/openrouter.key")
-LOG_PATH = os.path.expanduser("~/doctor_session.log")
-
-SESSION_HISTORY = []
-SYSTEM_PROMPT = "Role: Senior Termux Engineer. Concisely provide technical commands. No fluff."
+SYSTEM_PROMPT = "Role: Senior Network Security Auditor. Focus: Nmap, Netcat, and Termux local networking. Concise, zero fluff."
 
 def print_banner(ai_status):
     os.system('clear')
-    status = f"{G}ONLINE{RS}" if ai_status else f"{R}STEALTH{RS}"
-    # Hard-coded layout for 2026 Termux stability
+    status = f"{G}ON{RS}" if ai_status else f"{R}OFF{RS}"
     print(f"{G} .   .   {Y}=========================={RS}")
-    print(f"{G}/ \ / \  {Y} TERMUX-DOCTOR v3.2{RS}")
-    print(f"{G}\  X  /  {Y} STATUS: {status}{RS}")
+    print(f"{G}/ \ / \  {Y} TERMUX-DOCTOR v3.3{RS}")
+    print(f"{G}\  X  /  {Y} MODE: NET-AUDIT | {status}{RS}")
     print(f"{G} \/ \/   {Y}=========================={RS}")
     print(f"{Y} Type '?' for the manual.{RS}\n")
 
@@ -30,57 +24,43 @@ def main():
         if os.path.exists(CONFIG_PATH):
             with open(CONFIG_PATH, 'r') as f: api_key = f.read().strip()
 
-        p_label = f"{G}Dr. Prompt > {RS}" if ai_enabled else f"{R}[STEALTH] > {RS}"
+        p_label = f"{G}Net-Audit > {RS}" if ai_enabled else f"{R}[STEALTH] > {RS}"
         user_input = input(p_label).strip()
-        
         if not user_input: continue
+        
         cmd = user_input.lower()
-
-        # --- REFACTORED COMMANDS ---
         if cmd in ['exit', 'quit']: sys.exit(0)
         
+        # --- NEW NETWORK MACROS ---
+        if cmd == 'net-prep':
+            print(f"{Y}[*] Hardening Network Toolkit...{RS}")
+            os.system("pkg update -y && pkg install nmap iproute2 netcat -y")
+            print(f"{G}✅ Network Tools Ready.{RS}")
+            continue
+
         if cmd in ['?', 'doc-help']:
-            print(f"\n{Y}--- MANUAL ---{RS}")
-            print(f"{G}?{RS}         - Show this manual")
+            print(f"\n{Y}--- NET-AUDIT MANUAL ---{RS}")
+            print(f"{G}net-prep{RS}  - Install Nmap/Netcat suite")
             print(f"{G}ai off{RS}    - Stealth Mode (No Cloud)")
-            print(f"{G}ai on{RS}     - AI Mode (Online)")
-            print(f"{G}save log{RS}  - Export session to ~/doctor_session.log")
+            print(f"{G}ai on{RS}     - AI Consulting (Online)")
+            print(f"{G}save log{RS}  - Export scan results")
             print(f"{G}clear{RS}     - Reset Terminal UI\n")
             continue
 
-        if cmd == 'save log':
-            with open(LOG_PATH, 'w') as f:
-                f.write("\n".join(SESSION_HISTORY))
-            print(f"{G}âœ… Session saved to {LOG_PATH}{RS}")
-            continue
-
-        if cmd == 'ai off': ai_enabled = False; print_banner(ai_enabled); continue
-        if cmd == 'ai on': ai_enabled = True; print_banner(ai_enabled); continue
         if cmd == 'clear': print_banner(ai_enabled); continue
 
-        # --- LOGIC GATE ---
-        if not ai_enabled:
+        # AI Handshake Logic (Standard v3.2 Stable)
+        if ai_enabled and api_key:
+            try:
+                client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
+                response = client.chat.completions.create(
+                    model="openrouter/free", 
+                    messages=[{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": user_input}]
+                )
+                print(f"\n{Y}👨‍⚕️ [Doctor]:{RS}\n{response.choices[0].message.content}\n")
+            except Exception as e: print(f"{R}❌ Error: {e}{RS}")
+        elif not ai_enabled:
             print(f"{Y}[STEALTH]:{RS} {user_input}\n")
-            continue
-
-        try:
-            client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=api_key)
-            print(f"{Y}[*] Handshaking...{RS}", end="\r")
-            
-            response = client.chat.completions.create(
-                model="openrouter/free", 
-                messages=[{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": user_input}]
-            )
-            
-            answer = response.choices[0].message.content
-            print(" " * 30, end="\r")
-            print(f"\n{Y}ðŸ‘¨â€âš•ï¸ [Doctor]:{RS}\n{answer}\n")
-            
-            # Record for log
-            SESSION_HISTORY.append(f"USER: {user_input}\nAI: {answer}\n")
-
-        except Exception as e:
-            print(f"{R}âŒ Error: {e}{RS}")
 
 if __name__ == '__main__':
     main()
