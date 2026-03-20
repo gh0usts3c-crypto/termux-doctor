@@ -1,44 +1,32 @@
-import socket
 import os
 import subprocess
 
 def run():
-    target = input("\033[93m[?] Target IP for Socket-Level Audit: \033[0m").strip()
+    target = input("\033[93m[?] Target IP for Native-Z Audit: \033[0m").strip()
     if not target: return
 
-    # List of 'Silent' ports to check for a handshake
-    ports = [80, 443, 22, 135, 445, 8080]
-    found = False
-
-    print(f"\033[93m[*] Probing Socket Handshake (No-Scan Mode)...\033[0m")
+    # Common Stealth Ports
+    ports = "80 443 22 135 445 8080"
     
-    for port in ports:
-        # Create a raw stream socket
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(0.5) # Fast timeout for stealth
+    print(f"\033[93m[*] Forcing Native-Z Handshake on {target}...\033[0m")
+    
+    # -z: Zero-I/O (Handshake only), -w1: 1 second timeout, -v: Verbose
+    # We use 'sh' to bypass Python's socket restrictions
+    cmd = f"nc -zv -w1 {target} {ports} 2>&1"
+    
+    try:
+        output = subprocess.check_output(cmd, shell=True).decode()
+        print(output)
         
-        result = sock.connect_ex((target, port))
-        
-        if result == 0: # 0 means the port is OPEN and device is ALIVE
-            print(f"\033[92m[+] [HANDSHAKE-SUCCESS] Device is ACTIVE on Port {port}\033[0m")
-            found = True
-            sock.close()
-            break
-        sock.close()
+        if "succeeded" in output.lower() or "open" in output.lower():
+            print(f"\033[92m[+] [SYSTEM-SUCCESS] Handshake Confirmed.\033[0m")
+            print("\033[94m[*] Checking Kernel ARP Table for Identity...\033[0m")
+            os.system(f"ip neigh show {target}")
+        else:
+            print("\033[91m[!] No open gates found on common ports.\033[0m")
+            
+    except Exception:
+        print("\033[91m❌ Native Handshake Failed to execute.\033[0m")
+        print("💡 Suggestion: Run 'setup tools' to ensure 'netcat' is installed.")
 
-    if found:
-        print("\033[94m[*] Device confirmed. Pulling MAC from Kernel ARP Table...\033[0m")
-        # Now that a socket was opened, the kernel MUST have the MAC in 'ip neigh'
-        try:
-            neigh = subprocess.check_output(f"ip neigh show {target}", shell=True).decode().strip()
-            if neigh:
-                print(f"\033[92m[+] Identity Found: {neigh}\033[0m")
-            else:
-                print("\033[93m[!] Kernel hidden. Running low-intensity Nmap fallback...\033[0m")
-                os.system(f"nmap -sn {target}")
-        except:
-            print("\033[91m❌ Kernel Access Denied.\033[0m")
-    else:
-        print("\033[91m[!] No response on common ports. Device is in Deep Stealth.\033[0m")
-
-    print("\033[92m✅ Socket Audit Complete.\033[0m")
+    print("\033[92m✅ Native Audit Complete.\033[0m")
