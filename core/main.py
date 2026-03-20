@@ -2,28 +2,64 @@
 import sys
 from google import genai
 
-def check_vitals():
-    print("\033[93m[*] Checking 2026 Standard Vitals...\033[0m")
-    try:
-        import cryptography
-        print("\033[92m  ✅ Cryptography: OK\033[0m")
-        from google import genai
-        print("\033[92m  ✅ Google GenAI SDK: OK\033[0m")
-    except Exception as e:
-        print(f"\033[91m  ❌ Vital Failure: {e}\033[0m")
-        sys.exit(1)
+# DNA Banner Colors
+G = "\033[92m"  # Green
+Y = "\033[93m"  # Yellow
+R = "\033[91m"  # Red
+RS = "\033[0m"  # Reset
+
+def print_banner():
+    banner = f"""
+{G}      .      .{Y}        _____________________________________________{RS}
+{G}     / \    / \{Y}      |                                             |{RS}
+{G}    /   \__/   \{Y}     |{G}               TERMUX-DOCTOR{Y}                 |{RS}
+{G}    \   /  \   /{Y}     |{G}        > Network DNA Analysis v1.0 <{Y}        |{RS}
+{G}     \_/    \_/{Y}      |_____________________________________________|{RS}
+{G}      |      |{RS}       
+{G}      |      |{RS}       {Y}[ STATUS: SCANNING VITAL SIGNS... ]{RS}
+    """
+    print(banner)
+
+def get_api_key():
+    config_path = os.path.expanduser("~/.config/termux_doctor/gemini.key")
+    if os.path.exists(config_path):
+        with open(config_path, "r") as f:
+            return f.read().strip()
+    else:
+        os.makedirs(os.path.dirname(config_path), exist_ok=True)
+        print(f"{Y}🔑 [NEW DOCTOR DETECTED]{RS}")
+        key = input("Please paste your Gemini API Key: ")
+        with open(config_path, "w") as f:
+            f.write(key)
+        return key
 
 def main():
-    check_vitals()
-    # Updated 2026 Client Init
-    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY", "YOUR_KEY_HERE"))
-    print("\033[92m🩺 Doctor is Online.\033[0m")
+    os.system('clear')
+    print_banner()
     
-    while True:
-        user_input = input("\n\033[92mDr. Prompt > \033[0m")
-        if user_input.lower() in ['exit', 'quit']: break
-        response = client.models.generate_content(model="gemini-2.0-flash", contents=user_input)
-        print(f"\n\033[93m👨‍⚕️ [Doctor's Insight]:\033[0m\n{response.text}")
+    # Pre-flight check
+    print(f"{G}✅ System Vitals: NOMINAL{RS}")
+    
+    api_key = get_api_key()
+    
+    try:
+        # 2026 SDK Client
+        client = genai.Client(api_key=api_key)
+        print(f"{G}🩺 Doctor is Online. How can I help with your network today?{RS}")
+        
+        while True:
+            user_input = input(f"\n{G}Dr. Prompt > {RS}")
+            if user_input.lower() in ['exit', 'quit']: break
+            
+            # Use the 2026 Flash 2.0 model
+            response = client.models.generate_content(
+                model="gemini-2.0-flash", 
+                contents=user_input
+            )
+            print(f"\n{Y}👨‍⚕️ [Doctor's Insight]:{RS}\n{response.text}")
+            
+    except Exception as e:
+        print(f"{R}❌ Doctor Error: {e}{RS}")
 
 if __name__ == '__main__':
     main()
