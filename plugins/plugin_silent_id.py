@@ -1,36 +1,44 @@
+import socket
 import os
 import subprocess
-import re
 
 def run():
-    target = input("\033[93m[?] Target IP for Passive Audit: \033[0m").strip()
+    target = input("\033[93m[?] Target IP for Socket-Level Audit: \033[0m").strip()
     if not target: return
 
-    print(f"\033[93m[*] Initiating Ghost Discovery for {target}...\033[0m")
+    # List of 'Silent' ports to check for a handshake
+    ports = [80, 443, 22, 135, 445, 8080]
+    found = False
+
+    print(f"\033[93m[*] Probing Socket Handshake (No-Scan Mode)...\033[0m")
     
-    try:
-        # STEP 1: Layer-2 ARP Query (No ICMP/Ping)
-        # --send-eth forces Layer-2 bypassing the OS IP stack
-        cmd = f"nmap -sn -PR --send-eth {target}"
-        output = subprocess.check_output(cmd, shell=True).decode()
+    for port in ports:
+        # Create a raw stream socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(0.5) # Fast timeout for stealth
         
-        # Regex for MAC and Vendor
-        mac_match = re.search(r"MAC Address: ([0-9A-F:]{17}) \((.*?)\)", output, re.IGNORECASE)
+        result = sock.connect_ex((target, port))
         
-        if mac_match:
-            print(f"\033[92m[+] [L2-SUCCESS] Identity: {mac_match.group(2)}\033[0m")
-            print(f"\033[94m    Hardware ID: {mac_match.group(1)}\033[0m")
-        else:
-            print("\033[93m[!] Target is masked. Transitioning to TCP-ACK Discovery...\033[0m")
-            # STEP 2: TCP ACK Scan (Does not open a connection)
-            os.system(f"nmap -sn -PA {target}")
+        if result == 0: # 0 means the port is OPEN and device is ALIVE
+            print(f"\033[92m[+] [HANDSHAKE-SUCCESS] Device is ACTIVE on Port {port}\033[0m")
+            found = True
+            sock.close()
+            break
+        sock.close()
 
-        # STEP 3: Passive Service Fingerprinting
-        # -sV: Version, --version-intensity 0: Only read the initial banner (Very Quiet)
-        print("\033[94m[*] Attempting Passive Banner Grab (Intensity 0)...\033[0m")
-        os.system(f"nmap -sV --version-intensity 0 -T2 -Pn {target}")
-        
-    except Exception as e:
-        print(f"\033[91m❌ Protocol Error: {e}\033[0m")
+    if found:
+        print("\033[94m[*] Device confirmed. Pulling MAC from Kernel ARP Table...\033[0m")
+        # Now that a socket was opened, the kernel MUST have the MAC in 'ip neigh'
+        try:
+            neigh = subprocess.check_output(f"ip neigh show {target}", shell=True).decode().strip()
+            if neigh:
+                print(f"\033[92m[+] Identity Found: {neigh}\033[0m")
+            else:
+                print("\033[93m[!] Kernel hidden. Running low-intensity Nmap fallback...\033[0m")
+                os.system(f"nmap -sn {target}")
+        except:
+            print("\033[91m❌ Kernel Access Denied.\033[0m")
+    else:
+        print("\033[91m[!] No response on common ports. Device is in Deep Stealth.\033[0m")
 
-    print("\033[92m✅ Noiseless Audit Complete.\033[0m")
+    print("\033[92m✅ Socket Audit Complete.\033[0m")
