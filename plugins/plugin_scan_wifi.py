@@ -1,29 +1,29 @@
 import os
 import subprocess
+import re
 
 def run():
-    print("\033[93m[*] Initializing Robust Network Discovery...\033[0m")
+    print("\033[93m[*] Initializing Regex-Hardened Discovery...\033[0m")
     
-    # 2026 Termux-Safe IP Discovery
     try:
-        # Step 1: Identify the active WLAN interface and its CIDR
-        cmd = "ip -o -4 addr show wlan0 | awk '{print }'"
-        target = subprocess.check_output(cmd, shell=True).decode().strip()
+        # Step 1: Get the raw IP data from the system
+        raw_output = subprocess.check_output("ip -o -4 addr show wlan0", shell=True).decode()
         
-        if not target:
-            print("\033[93m[!] wlan0 not found. Attempting universal search...\033[0m")
-            # Fallback: Find the first non-loopback inet address
-            cmd = "ip -o -4 addr | grep -v '127.0.0.1' | head -n 1 | awk '{print }'"
-            target = subprocess.check_output(cmd, shell=True).decode().strip()
-
-        if target:
-            print(f"\033[92m[+] Network Identified: {target}\033[0m")
-            print("\033[93m[*] Running Host Discovery (Ping Scan)...\033[0m")
+        # Step 2: Use Regex to find the CIDR (e.g., 192.168.1.5/24)
+        # This looks for 4 groups of numbers separated by dots, followed by a slash and mask
+        match = re.search(r'(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2})', raw_output)
+        
+        if match:
+            target = match.group(1)
+            print(f"\033[92m[+] Regex Matched Subnet: {target}\033[0m")
+            print("\033[93m[*] Running Nmap Host Discovery...\033[0m")
             os.system(f"nmap -sn {target}")
             print(f"\033[92m✅ Discovery Complete.\033[0m")
         else:
-            print("\033[91m❌ Error: Could not resolve local subnet.\033[0m")
-            print("💡 Check if WiFi is enabled or try 'pkg install nmap'.")
+            print("\033[91m❌ Regex Fail: Could not extract IP from raw data.\033[0m")
+            print(f"Raw Data received: {raw_output}")
             
     except Exception as e:
-        print(f"\033[91m❌ Plugin Error: {e}\033[0m")
+        # Final Fallback if wlan0 is protected/hidden
+        print("\033[93m[!] wlan0 restricted. Trying Common Subnet Scan...\033[0m")
+        os.system("nmap -sn 192.168.1.0/24 192.168.0.0/24")
