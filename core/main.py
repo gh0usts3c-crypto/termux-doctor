@@ -31,32 +31,37 @@ def main():
     print_banner()
     api_key = get_key()
     
-    while True:
-        try:
-            client = genai.Client(api_key=api_key)
-            print(f"{G}🩺 Doctor Online (Key: {api_key[:4]}...{api_key[-4:]}){RS}")
+    # Force the client to use the stable 2026 production environment
+    try:
+        client = genai.Client(api_key=api_key, http_options={'api_version': 'v1'})
+        # Use the fully qualified model name
+        STABLE_MODEL = "gemini-1.5-flash"
+        
+        print(f"{G}🩺 Doctor Online (v1 Stable Path Active){RS}")
+        
+        while True:
+            user_input = input(f"\n{G}Dr. Prompt > {RS}").strip()
+            if not user_input: continue
+            if user_input.lower() in ['exit', 'quit']: sys.exit(0)
             
-            while True:
-                user_input = input(f"\n{G}Dr. Prompt > {RS}").strip()
-                
-                if user_input.lower() in ['exit', 'quit']: sys.exit(0)
-                
-                # KEY ROTATION COMMAND
-                if user_input.lower() == 'update key':
-                    print(f"{Y}🔑 Enter New API Key (or type 'cancel'):{RS}")
-                    new_val = input("> ").strip()
-                    if new_val.lower() != 'cancel':
-                        api_key = save_key(new_val)
-                        print(f"{G}✅ Key Updated. Reconnecting...{RS}")
-                        break # Break inner loop to re-init client
-                    continue
+            if user_input.lower() == 'update key':
+                print(f"{Y}🔑 Enter New API Key:{RS}")
+                api_key = save_key(input("> "))
+                client = genai.Client(api_key=api_key, http_options={'api_version': 'v1'})
+                print(f"{G}✅ Key Updated.{RS}")
+                continue
 
-                response = client.models.generate_content(model="gemini-1.5-flash", contents=user_input)
-                print(f"\n{Y}👨‍⚕️ [Doctor]:{RS}\n{response.text}")
+            # Standard Content Generation
+            response = client.models.generate_content(
+                model=STABLE_MODEL, 
+                contents=user_input
+            )
+            print(f"\n{Y}👨‍⚕️ [Doctor]:{RS}\n{response.text}")
                 
-        except Exception as e:
-            print(f"{R}❌ Error: {e}{RS}")
-            api_key = save_key(input(f"{Y}Please enter a valid key to try again: {RS}"))
+    except Exception as e:
+        print(f"{R}❌ System Error: {e}{RS}")
+        if "400" in str(e):
+            print(f"{Y}💡 Tip: Use 'update key' to try a fresh key from AI Studio.{RS}")
 
 if __name__ == '__main__':
     main()
