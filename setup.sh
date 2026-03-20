@@ -1,28 +1,35 @@
 ﻿#!/data/data/com.termux/files/usr/bin/bash
-echo "🩺 Performing Absolute Path Reconstruction..."
+echo "🩺 Building Isolated Diagnostic Environment..."
 
-# 1. Purge and Refresh
+# 1. Purge old broken links
 rm -rf ~/.termux_doctor
 pkg update -y
 pkg install python git clang rust binutils -y
 
-# 2. Get the Dynamic Python Path
-PY_VER=3.14
-PY_PATH="/data/data/com.termux/files/usr/lib/python$PY_VER/site-packages"
-
-# 3. Force-Install the 'Google' Namespace into that path
-pip install --upgrade pip
-pip install google-api-core google-generativeai
-
-# 4. Clone and Create the Global Alias with Dynamic Pathing
+# 2. Clone the Repository
 REPO_URL="https://github.com/gh0usts3c-crypto/Termux-Doctor.git"
 git clone $REPO_URL ~/.termux_doctor
+cd ~/.termux_doctor
 
-# We write the alias to handle the PYTHONPATH automatically
-echo "alias doctor='PYTHONPATH=$PY_PATH python ~/.termux_doctor/core/main.py'" > ~/.termux_doctor_alias
-if ! grep -q "termux_doctor_alias" ~/.bashrc; then
-    echo "source ~/.termux_doctor_alias" >> ~/.bashrc
+# 3. Create the Virtual Environment (The Clean Room)
+python -m venv venv
+source venv/bin/activate
+
+# 4. Install dependencies INSIDE the venv (No build isolation here)
+pip install --upgrade pip setuptools wheel
+echo "📦 Installing AI Core into isolated container..."
+pip install google-generativeai
+
+# 5. Create a Wrapper Script for the Alias
+echo "#!/data/data/com.termux/files/usr/bin/bash" > doctor_run.sh
+echo "source ~/.termux_doctor/venv/bin/activate" >> doctor_run.sh
+echo "python ~/.termux_doctor/core/main.py \"\$@\"" >> doctor_run.sh
+chmod +x doctor_run.sh
+
+# 6. Global Alias Setup
+if ! grep -q "alias doctor=" ~/.bashrc; then
+    echo "alias doctor='~/.termux_doctor/doctor_run.sh'" >> ~/.bashrc
 fi
 source ~/.bashrc
 
-echo "✅ Absolute Fix Applied. Type 'doctor' to test."
+echo "✅ VENV DEPLOYMENT COMPLETE! Type 'doctor'."
