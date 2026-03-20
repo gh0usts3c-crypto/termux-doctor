@@ -1,35 +1,20 @@
 ﻿#!/data/data/com.termux/files/usr/bin/bash
-echo "🩺 Building Isolated Diagnostic Environment..."
+echo "🩺 Running Phoenix Reinstall with Debugger..."
 
-# 1. Purge old broken links
-rm -rf ~/.termux_doctor
+export ANDROID_API_LEVEL=26
 pkg update -y
-pkg install python git clang rust binutils -y
+pkg install python python-cryptography python-pydantic python-grpcio clang rust git -y
 
-# 2. Clone the Repository
-REPO_URL="https://github.com/gh0usts3c-crypto/Termux-Doctor.git"
-git clone $REPO_URL ~/.termux_doctor
-cd ~/.termux_doctor
+pip install --upgrade pip
+pip install google-generativeai --no-build-isolation
 
-# 3. Create the Virtual Environment (The Clean Room)
-python -m venv venv
-source venv/bin/activate
+rm -rf ~/.termux_doctor
+git clone https://github.com/gh0usts3c-crypto/Termux-Doctor.git ~/.termux_doctor
 
-# 4. Install dependencies INSIDE the venv (No build isolation here)
-pip install --upgrade pip setuptools wheel
-echo "📦 Installing AI Core into isolated container..."
-pip install google-generativeai
-
-# 5. Create a Wrapper Script for the Alias
-echo "#!/data/data/com.termux/files/usr/bin/bash" > doctor_run.sh
-echo "source ~/.termux_doctor/venv/bin/activate" >> doctor_run.sh
-echo "python ~/.termux_doctor/core/main.py \"\$@\"" >> doctor_run.sh
-chmod +x doctor_run.sh
-
-# 6. Global Alias Setup
-if ! grep -q "alias doctor=" ~/.bashrc; then
-    echo "alias doctor='~/.termux_doctor/doctor_run.sh'" >> ~/.bashrc
+echo "alias doctor='python ~/.termux_doctor/core/main.py'" > ~/.termux_doctor_alias
+if ! grep -q "termux_doctor_alias" ~/.bashrc; then
+    echo "source ~/.termux_doctor_alias" >> ~/.bashrc
 fi
 source ~/.bashrc
 
-echo "✅ VENV DEPLOYMENT COMPLETE! Type 'doctor'."
+python ~/.termux_doctor/core/main.py
