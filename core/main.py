@@ -14,15 +14,13 @@ def print_banner():
     print(f"{G}     \_/    \_/{Y}      |_____________________________________________|{RS}")
 
 def repair_system():
-    print(f"{Y}[*] Repairing System Links...{RS}")
+    print(f"[*] Repairing system line endings...")
     os.system("sed -i 's/\\r//g' ~/.bashrc")
-    os.system("sed -i 's/\\r//g' ~/.termux_doctor/core/main.py")
-    print(f"{G}✅ Repair Complete. Type 'source ~/.bashrc' if doctor alias fails.{RS}")
+    print(f"✅ Repair Complete.")
 
 def main():
     print_banner()
     while True:
-        # Load key dynamically so 'update key' works instantly
         api_key = None
         if os.path.exists(CONFIG_PATH):
             with open(CONFIG_PATH, 'r') as f:
@@ -37,14 +35,14 @@ def main():
             continue
 
         if user_input.lower() == 'update key':
-            val = input(f"{Y}🔑 Paste New API Key:{RS} ").strip()
+            val = input(f"🔑 Paste New API Key: ").strip()
             os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
             with open(CONFIG_PATH, 'w') as f: f.write(val)
-            print(f"{G}✅ Key Saved.{RS}")
+            print(f"✅ Key Saved.")
             continue
 
         if not api_key:
-            print(f"{R}❌ No Key Found. Type 'update key' to begin.{RS}")
+            print(f"❌ No Key Found. Use 'update key'.")
             continue
 
         try:
@@ -52,7 +50,7 @@ def main():
             res = client.models.generate_content(model="gemini-1.5-flash", contents=user_input)
             print(f"\n{Y}👨‍⚕️ [Doctor]:{RS}\n{res.text}")
         except Exception as e:
-            print(f"{R}❌ Handshake Failed: {e}{RS}")
+            print(f"❌ Handshake Failed: {e}")
 
 if __name__ == '__main__':
     main()
