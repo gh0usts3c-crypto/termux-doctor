@@ -1,18 +1,10 @@
-﻿#!/data/data/com.termux/files/usr/bin/bash
-echo "🩺 Hard-Resetting Termux-Doctor..."
-
-# Remove everything old
+#!/data/data/com.termux/files/usr/bin/bash
+echo -e "\033[92m🩺 Starting Seamless Installation...\033[0m"
 rm -rf ~/.termux_doctor
-rm -rf ~/.termux_doctor_alias
-
-# Re-clone fresh
 git clone https://github.com/gh0usts3c-crypto/Termux-Doctor.git ~/.termux_doctor
-
-# Re-establish Alias
+sed -i 's/\r//g' ~/.termux_doctor/core/main.py
 echo "alias doctor='python ~/.termux_doctor/core/main.py'" > ~/.termux_doctor_alias
-if ! grep -q "termux_doctor_alias" ~/.bashrc; then
-    echo "source ~/.termux_doctor_alias" >> ~/.bashrc
-fi
+sed -i 's/\r//g' ~/.termux_doctor_alias
+grep -q "termux_doctor_alias" ~/.bashrc || echo "source ~/.termux_doctor_alias" >> ~/.bashrc
 source ~/.bashrc
-
 python ~/.termux_doctor/core/main.py
