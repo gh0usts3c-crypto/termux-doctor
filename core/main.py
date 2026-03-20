@@ -5,11 +5,7 @@ class DrTools:
         self.debug_log = []
         self.ai_enabled = ai_enabled
         self.version = "3.5-GOLD"
-        # Force absolute pathing for plugins to prevent 'File Not Found' errors
         self.base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    def get_subnet(self):
-        return "192.168.1.0/24" 
 
     def log_error(self, module, error):
         self.debug_log.append(f"[{module}] {error}")
@@ -35,19 +31,32 @@ def main():
     if tools.ai_enabled: print("\033[93m[!] AI Engine: AWAKE\033[0m")
     else: print("\033[90m[i] AI Engine: DORMANT (Use 'doctor --ai' to wake)\033[0m")
     
-    plugin_path = os.path.join(tools.base_path, "plugins", "plugin_device_id.py")
-
+    # DYNAMIC COMMAND MAP
     while True:
         try:
             cmd = input("\n\033[92mdoctor > \033[0m").strip().lower()
             if cmd in ["exit", "quit"]: break
-            if cmd == "device id":
-                if os.path.exists(plugin_path):
-                    exec(open(plugin_path).read(), {'tools': tools})
+            
+            # THE MANUAL / HELP COMMAND
+            if cmd in ["?", "help", "man"]:
+                print("\n\033[93mAVAILABLE COMMANDS:\033[0m")
+                print("  'device id' : Run Ghost-ID Network Scanner")
+                print("  'exit'      : Terminate Ghost-Protocol")
+                print("  '?'         : Show this Manual")
+                
+            elif cmd == "device id":
+                p_path = os.path.join(tools.base_path, "plugins", "plugin_device_id.py")
+                if os.path.exists(p_path):
+                    # Forcing a fresh read to avoid cache desync
+                    with open(p_path, "r") as f:
+                        code = f.read()
+                    exec(code, {'tools': tools})
                 else:
-                    print(f"\033[91m[!] Error: Plugin not found at {plugin_path}\033[0m")
-            elif cmd == "?":
-                print("Commands: 'device id', 'exit', '?'")
+                    print(f"\033[91m[!] Error: Plugin not found at {p_path}\033[0m")
+            
+            else:
+                if cmd: print(f"\033[90m[i] Unknown command: '{cmd}'. Type '?' for help.\033[0m")
+                
         except KeyboardInterrupt: break
         except Exception as e: print(f"\033[91m[!] Error: {e}\033[0m")
 
