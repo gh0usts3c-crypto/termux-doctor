@@ -1,3 +1,4 @@
+VERSION = '3.2.1'
 import os
 import sys
 import time
@@ -50,7 +51,7 @@ def main():
         if cmd == 'save log':
             with open(LOG_PATH, 'w') as f:
                 f.write("\n".join(SESSION_HISTORY))
-            print(f"{G}✅ Session saved to {LOG_PATH}{RS}")
+            print(f"{G}âœ… Session saved to {LOG_PATH}{RS}")
             continue
 
         if cmd == 'ai off': ai_enabled = False; print_banner(ai_enabled); continue
@@ -73,13 +74,13 @@ def main():
             
             answer = response.choices[0].message.content
             print(" " * 30, end="\r")
-            print(f"\n{Y}👨‍⚕️ [Doctor]:{RS}\n{answer}\n")
+            print(f"\n{Y}ðŸ‘¨â€âš•ï¸ [Doctor]:{RS}\n{answer}\n")
             
             # Record for log
             SESSION_HISTORY.append(f"USER: {user_input}\nAI: {answer}\n")
 
         except Exception as e:
-            print(f"{R}❌ Error: {e}{RS}")
+            print(f"{R}âŒ Error: {e}{RS}")
 
 if __name__ == '__main__':
     main()
