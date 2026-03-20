@@ -1,23 +1,18 @@
-﻿import os, json
+﻿import os
 
-CONFIG_PATH = os.path.expanduser("~/.config/termux_doctor/config.json")
+CONFIG_DIR = os.path.expanduser("~/.config/termux_doctor")
+KEY_FILE = os.path.join(CONFIG_DIR, "gemini.key")
 
 def load_api_key():
-    if os.path.exists(CONFIG_PATH):
-        with open(CONFIG_PATH, 'r') as f:
-            try:
-                data = json.load(f)
-                return data.get("gemini_key")
-            except:
-                pass
+    if not os.path.exists(CONFIG_DIR):
+        os.makedirs(CONFIG_DIR)
     
-    # First-run setup
-    print("\n🔑 Gemini API Key not found.")
-    key = input("Please enter your Gemini 1.5 API Key: ").strip()
-    
-    os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-    with open(CONFIG_PATH, 'w') as f:
-        json.dump({"gemini_key": key}, f)
-    
-    print("✅ Key saved locally.")
-    return key
+    if os.path.exists(KEY_FILE):
+        with open(KEY_FILE, "r") as f:
+            return f.read().strip()
+    else:
+        print("\033[93m[!] No API Key found.\033[0m")
+        key = input("🔑 Please enter your Gemini API Key: ")
+        with open(KEY_FILE, "w") as f:
+            f.write(key)
+        return key
