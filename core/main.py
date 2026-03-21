@@ -1,10 +1,10 @@
-import sys, subprocess, os, glob
+import sys, subprocess, os, glob, importlib.util
 
 class DrTools:
     def __init__(self, ai_enabled=False):
         self.debug_log = []
         self.ai_enabled = ai_enabled
-        self.version = "3.6-TITAN"
+        self.version = "3.7-AURORA"
         self.base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     def log_error(self, module, error):
@@ -19,6 +19,20 @@ class DrTools:
                 print(f"\033[91m[!] {entry}\033[0m")
         self.debug_log = []
 
+def get_plugins(tools):
+    """Dynamically finds all plugins and their commands."""
+    plugins_map = {}
+    plugin_files = glob.glob(os.path.join(tools.base_path, "plugins", "plugin_*.py"))
+    
+    for p_file in plugin_files:
+        try:
+            # Extract command name from filename (e.g., plugin_device_id.py -> device id)
+            name = os.path.basename(p_file).replace("plugin_", "").replace(".py", "").replace("_", " ")
+            plugins_map[name] = p_file
+        except Exception as e:
+            tools.log_error("Loader", str(e))
+    return plugins_map
+
 def main():
     ai_status = "--ai" in sys.argv
     tools = DrTools(ai_enabled=ai_status)
@@ -27,32 +41,26 @@ def main():
     print("\033[92m" + "="*45 + "\n  TERMUX-DOCTOR v" + tools.version + " | GHOST-PROTOCOL\n" + "="*45 + "\033[0m")
     
     while True:
+        # Re-scan plugins folder every loop to allow live retro-integration
+        commands = get_plugins(tools)
+        
         try:
             cmd = input("\n\033[92mdoctor > \033[0m").strip().lower()
             if cmd in ["exit", "quit"]: break
             
-            # THE TITAN MANUAL (Full List)
             if cmd in ["?", "help", "man"]:
-                print("\n\033[93m--- FULL COMMAND MANUAL ---\033[0m")
-                print("  'device id'    : Run Ghost-ID Network Scanner")
-                print("  'sniffer'      : (PENDING) Traffic Analysis")
-                print("  'net guard'    : (PENDING) Intrusion Alert System")
-                print("  'sys diag'     : Termux System Health Check")
-                print("  'ghost wipe'   : Clear all Logs and History")
-                print("  'exit'         : Securely Terminate")
+                print("\n\033[93m--- AUTO-INTEGRATED MODULES ---\033[0m")
+                for c_name in sorted(commands.keys()):
+                    print(f"  '{c_name}'")
+                print("  'exit'")
                 
-            elif cmd == "device id":
-                p_path = os.path.join(tools.base_path, "plugins", "plugin_device_id.py")
-                if os.path.exists(p_path):
-                    with open(p_path, "r") as f: exec(f.read(), {'tools': tools})
-                else: print("\033[91m[!] Plugin Missing.\033[0m")
+            elif cmd in commands:
+                p_path = commands[cmd]
+                with open(p_path, "r") as f:
+                    exec(f.read(), {'tools': tools})
             
-            # ADD FUTURE COMMAND HOOKS HERE
-            elif cmd in ["sniffer", "net guard", "sys diag", "ghost wipe"]:
-                print(f"\033[93m[!] Module '{cmd}' is currently being reconstructed for v3.6.\033[0m")
-                
-            else:
-                if cmd: print(f"\033[90m[i] Unknown: '{cmd}'. Type '?' for full list.\033[0m")
+            elif cmd:
+                print(f"\033[90m[i] Unknown: '{cmd}'. (Found {len(commands)} active modules)\033[0m")
                 
         except KeyboardInterrupt: break
         except Exception as e: print(f"\033[91m[!] Error: {e}\033[0m")
